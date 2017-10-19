@@ -30,7 +30,23 @@ def gradcheck_naive(f, x):
         # to test cost functions with built in randomness later.
 
         ### YOUR CODE HERE:
-        raise NotImplementedError
+
+        # First principles
+        # f(x+h)-f(x) / h will not work 
+        # This is because the derviative will be 2x+h and it is not possible to eliminate
+        # h as it is greater than the epsilon error
+        # Hence we use f(x+h)-f(x-h) / 2*h to remove this h term
+        
+        x[ix]-=h
+        random.setstate(rndstate)
+        cost1,numgrad1 = f(x)
+        x[ix]+=(2*h)
+        random.setstate(rndstate)
+        cost2,numgrad2 = f(x)
+        numgrad = (cost2-cost1)/(h+h)
+
+        x[ix]-=h # reset back to original value
+        #raise NotImplementedError
         ### END YOUR CODE
 
         # Compare gradients
@@ -69,7 +85,7 @@ def your_sanity_checks():
     """
     print "Running your sanity checks..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
 
