@@ -15,9 +15,11 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    squares = x*x
-    sum_row = np.sum(squares,axis=1,keepdims=True)
-    x/=np.sqrt(sum_row)
+    
+    xsq = x*x
+    xsum = np.sum(xsq,axis = 1,keepdims = True)
+    xsqrt = np.sqrt(xsum)
+    x /= xsqrt
     #raise NotImplementedError
     ### END YOUR CODE
 
@@ -61,13 +63,22 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    
-    softmax() = 0
-    gradPred = 1
-    grad = 1
-    cost = 0
-
     #raise NotImplementedError
+    cost = 0
+    gradPred = 0
+    grad = 0
+
+    yhat = softmax(np.dot(predicted,outputVectors.T))
+    cost = -np.log(yhat[target])
+    yhatminusy = yhat
+    yhatminusy[target] -= 1
+    gradPred = np.dot(yhatminusy,outputVectors)
+    grad = np.dot(yhatminusy[:,np.newaxis],predicted[np.newaxis,:])
+    # print "Predicted = ",predicted
+    # print "Target = ",target
+    # print "OutputVectors = ",outputVectors
+
+
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -105,6 +116,25 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
+
+    cost = -np.log(sigmoid(np.dot(predicted,outputVectors[target].T)))
+    gradPred = np.dot(sigmoid(np.dot(predicted,outputVectors[target].T)) - 1,outputVectors[target])
+
+    sub = 0
+    grad = np.zeros(outputVectors.shape)
+    for index in indices[1:]:
+        cost -=np.log(sigmoid(np.dot(predicted,-outputVectors[index].T)))
+        sub +=np.dot(sigmoid(np.dot(predicted,-outputVectors[index].T)) - 1,outputVectors[index])
+        grad[index] -= np.dot(predicted,sigmoid(np.dot(predicted,-outputVectors[index].T)) - 1)
+    gradPred -= sub
+    grad[target] += np.dot(predicted,sigmoid(np.dot(predicted,outputVectors[target].T)) - 1)
+
+    # yhat = softmax(np.dot(predicted,outputVectors[indices].T))
+    # cost = -np.log(yhat[target])
+    # yhatminusy = yhat
+    # yhatminusy[target] -= 1
+    # gradPred = np.dot(yhatminusy,outputVectors)
+    # grad = np.dot(yhatminusy[:,np.newaxis],predicted[np.newaxis,:])
     #raise NotImplementedError
     ### END YOUR CODE
 
@@ -140,6 +170,17 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
+    #print "Current Word = ",contextWords
+    predicted = inputVectors[tokens[currentWord]]
+    for contextWord in contextWords:
+        target = tokens[contextWord]
+        c,gIn,gOut = word2vecCostAndGradient(predicted,target,outputVectors,dataset)
+        cost+=c
+        gradIn[tokens[currentWord]]+=gIn
+        #print gIn.shape
+        gradOut+=gOut
+    #print "currentWord",currentWord,"C",C,"contextWords",contextWords,"tokens",tokens
+
     #raise NotImplementedError
     ### END YOUR CODE
 
@@ -165,6 +206,30 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
 
     ### YOUR CODE HERE
     #raise NotImplementedError
+
+    ### YOUR CODE HERE
+    #print "Current Word = ",contextWords
+
+    target = tokens[currentWord]
+    vhat = np.zeros(inputVectors[tokens[contextWords[0]]].shape)
+    for contextWord in contextWords:
+        vhat += inputVectors[tokens[contextWord]]
+
+    cost, gIn, gOut = word2vecCostAndGradient(vhat, target, outputVectors, dataset)
+
+    gradIn = np.zeros(np.array(inputVectors).shape)
+    for contextWord in contextWords:
+        gradIn[tokens[contextWord]] += gIn 
+    gradOut = gOut
+
+    # print tokens[v[:]]
+    # for contextWord in contextWords:
+
+    #     c,gIn,gOut = softmaxCostAndGradient(predicted,target,outputVectors,dataset)
+    #     cost+=c
+    #     gradIn[tokens[currentWord]]+=gIn
+    #     #print gIn.shape
+    #     gradOut+=gOut
     ### END YOUR CODE
 
     return cost, gradIn, gradOut

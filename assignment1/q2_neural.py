@@ -51,7 +51,7 @@ def forward_backward_prop(data, labels, params, dimensions):
 
     ### YOUR CODE HERE: backward propagation
 
-    a3grad = a3-labels
+    a3grad = a3-labels # this is the grad for softmax
     gradW2 = np.dot(a2.T,a3grad)
     gradb2 = np.sum(a3grad,axis=0,keepdims=True)
     t = np.dot(W2,a3grad.T)*sigmoid_grad(a2).T
